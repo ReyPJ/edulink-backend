@@ -36,7 +36,6 @@ class ClassGrupo(models.Model):
         CustomUser,
         limit_choices_to={"role": CustomUser.STUDENT},
         related_name="clase_student",
-        on_delente=models.CASCADE,
     )
     center = models.CharField(max_length=250)
 

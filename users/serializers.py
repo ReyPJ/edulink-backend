@@ -5,6 +5,8 @@ from django.db import models
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     class Meta:
         model = CustomUser
         fields = [
@@ -21,29 +23,40 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
         ]
         extra_kwargs = {
-            "password": {"write_only": True, "required": True},
+            "password": {"write_only": True, "required": False},
             "unique_code": {"required": True},
         }
 
-        def validate(self, data):
-            if CustomUser.objects.filter(email=data["email"]).exists():
+    def create(self, validated_data):
+        role = validated_data.get("role", CustomUser.STUDENT)
+        password = validated_data.pop("password", None)
+
+        if role == CustomUser.STUDENT:
+            user = CustomUser.objects.create(**validated_data)
+
+        else:
+            if not password:
                 raise serializers.ValidationError(
-                    {"email": "This email is alrady in use"}
+                    {"password": "Password is required for non-student roles."}
                 )
 
-            if CustomUser.objects.filter(unique_code=data["unique_code"]).exists():
-                raise serializers.ValidationError(
-                    {"unique_code": "This unique code is already in use"}
-                )
-
-            return data
-
-        def create(self, validated_data):
-            password = validated_data.pop("password")
             user = CustomUser.objects.create(**validated_data)
             user.set_password(password)
-            user.save()
-            return user
+
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+
+        if password:
+            instance.set_password(password)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class ClassGrupoSerializer(serializers.ModelSerializer):
@@ -51,7 +64,7 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
         queryset=CustomUser.objects.filter(role=CustomUser.PROFESOR)
     )
     students = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.filter(role=CustomUser.STUDENT)
+        queryset=CustomUser.objects.filter(role=CustomUser.STUDENT), many=True
     )
 
     class Meta:
@@ -59,7 +72,7 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ParenStundentRelationSerializer(serializers.ModelSerializer):
+class ParentStundentRelationSerializer(serializers.ModelSerializer):
     parent = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.filter(role=CustomUser.FATHER)
     )
@@ -70,22 +83,3 @@ class ParenStundentRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentStudentRelation
         fields = "__all__"
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        username_or_code = attrs.get("username")
-        password = attrs.get("password")
-
-        if not username_or_code or not password:
-            raise serializers.ValidationError("Must include username and password.")
-
-        user = CustomUser.objects.filter(
-            models.Q(unique_code=username_or_code) | models.Q(phone=username_or_code)
-        ).first()
-
-        if user and user.check_password(password):
-            data = super().validate({"username": user.username, "password": password})
-            return data
-
-        raise serializers.ValidationError("Invalid credentials. Please try again.")
