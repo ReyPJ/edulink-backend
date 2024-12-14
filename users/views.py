@@ -96,9 +96,22 @@ class UserDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ClassListCreateView(generics.ListCreateAPIView):
-    queryset = ClassGrupo.objects.all()
     serializer_class = ClassGrupoSerializer
     permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == CustomUser.ADMIN:
+            return ClassGrupo.objects.filter(center=user.center)
+        elif user.role == CustomUser.PROFESOR:
+            return ClassGrupo.objects.filter(center=user.center)
+        elif user.role == CustomUser.STUDENT:
+            return ClassGrupo.objects.filter(students=user)
+        elif user.role == CustomUser.FATHER:
+            return ClassGrupo.objects.filter(students__parents=user)
+
+        return ClassGrupo.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user

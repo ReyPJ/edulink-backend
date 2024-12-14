@@ -25,7 +25,7 @@ class CustomUser(AbstractUser):
 
 
 class ClassGrupo(models.Model):
-    name = (models.CharField(max_length=100),)
+    name = models.CharField(max_length=100, default="Grupo A")
     teacher = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
