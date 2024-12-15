@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, ClassGrupo, ParentStudentRelation
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.db import models
+from .models import CustomUser, ClassGrupo
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -79,27 +77,3 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
 
     def get_teacher_name(self, obj):
         return obj.teacher.get_full_name() if obj.teacher else None
-
-
-class ParentStundentRelationSerializer(serializers.ModelSerializer):
-    parent = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.filter(role=CustomUser.FATHER)
-    )
-    student = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.filter(role=CustomUser.STUDENT)
-    )
-
-    class Meta:
-        model = ParentStudentRelation
-        fields = "__all__"
-
-    def validate(self, data):
-        parent = data.get("parent")
-        student = data.get("student")
-
-        if parent.center != student.center:
-            raise serializers.ValidationError(
-                "Parent and student must belong to the same center."
-            )
-
-        return data
