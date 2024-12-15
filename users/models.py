@@ -41,22 +41,3 @@ class ClassGrupo(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.center}"
-
-
-class ParentStudentRelation(models.Model):
-    parent = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        limit_choices_to={"role": CustomUser.FATHER},
-        related_name="padre",
-    )
-    student = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        limit_choices_to={"role": CustomUser.STUDENT},
-        related_name="parents",
-    )
-    center = models.CharField(max_length=250)
-
-    def __str__(self):
-        return f"Parent: {self.parent.username} = Stundent: {self.student.username} - {self.center}"

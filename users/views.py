@@ -5,12 +5,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import models
-from .models import CustomUser, ClassGrupo, ParentStudentRelation
-from .permissions import IsAdmin, IsParent, IsProfesor
+from .models import CustomUser, ClassGrupo
+from .permissions import IsAdmin, IsParent, IsProfesor, IsStudent
 from .serializers import (
     UserSerializer,
     ClassGrupoSerializer,
-    ParentStundentRelationSerializer,
 )
 
 
@@ -97,7 +96,7 @@ class UserDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 class ClassListCreateView(generics.ListCreateAPIView):
     serializer_class = ClassGrupoSerializer
-    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor | IsParent | IsStudent]
 
     def get_queryset(self):
         user = self.request.user
@@ -108,8 +107,6 @@ class ClassListCreateView(generics.ListCreateAPIView):
             return ClassGrupo.objects.filter(center=user.center)
         elif user.role == CustomUser.STUDENT:
             return ClassGrupo.objects.filter(students=user)
-        elif user.role == CustomUser.FATHER:
-            return ClassGrupo.objects.filter(students__parents=user)
 
         return ClassGrupo.objects.none()
 
@@ -120,19 +117,3 @@ class ClassListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("You do not have permission to create classes.")
 
         serializer.save(center=user.center)
-
-
-class ParentStudentRelationView(generics.ListCreateAPIView):
-    queryset = ParentStudentRelation.objects.all()
-    serializer_class = ParentStundentRelationSerializer
-    permission_classes = [IsAuthenticated, IsAdmin | IsParent]
-
-    def perform_create(self, serializer):
-        user = self.request.user
-
-        if user.role != CustomUser.FATHER and user.role != CustomUser.ADMIN:
-            raise PermissionDenied(
-                "You do not have permission to create this relation."
-            )
-
-        serializer.save()

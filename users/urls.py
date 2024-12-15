@@ -3,7 +3,6 @@ from .views import (
     UserListCreateView,
     UserDetailUpdateDeleteView,
     ClassListCreateView,
-    ParentStudentRelationView,
 )
 
 urlpatterns = [
@@ -16,10 +15,4 @@ urlpatterns = [
     ),
     # Clases
     path("classes/", ClassListCreateView.as_view(), name="class-list-create"),
-    # Relaciones Padre-Estudiante
-    path(
-        "parent-student-relation",
-        ParentStudentRelationView.as_view(),
-        name="parent-student-relation",
-    ),
 ]

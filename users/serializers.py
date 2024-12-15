@@ -67,9 +67,18 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
         queryset=CustomUser.objects.filter(role=CustomUser.STUDENT), many=True
     )
 
+    teacher_name = serializers.SerializerMethodField()
+    students_name = serializers.SerializerMethodField()
+
     class Meta:
         model = ClassGrupo
         fields = "__all__"
+
+    def get_students_name(self, obj):
+        return [student.get_full_name() for student in obj.students.all()]
+
+    def get_teacher_name(self, obj):
+        return obj.teacher.get_full_name() if obj.teacher else None
 
 
 class ParentStundentRelationSerializer(serializers.ModelSerializer):
@@ -83,3 +92,14 @@ class ParentStundentRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentStudentRelation
         fields = "__all__"
+
+    def validate(self, data):
+        parent = data.get("parent")
+        student = data.get("student")
+
+        if parent.center != student.center:
+            raise serializers.ValidationError(
+                "Parent and student must belong to the same center."
+            )
+
+        return data

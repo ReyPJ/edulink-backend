@@ -14,3 +14,8 @@ class IsProfesor(BasePermission):
 class IsParent(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == "father"
+
+
+class IsStudent(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == "student"
