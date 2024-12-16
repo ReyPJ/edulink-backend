@@ -10,6 +10,8 @@ from .permissions import IsAdmin, IsParent, IsProfesor, IsStudent
 from .serializers import (
     UserSerializer,
     ClassGrupoSerializer,
+    ParentChildSerializer,
+    ParentChildListSerializer,
 )
 
 
@@ -61,6 +63,17 @@ class UserListCreateView(generics.ListCreateAPIView):
         serializer.save(center=user.center)
         return Response({"status": "User Created"}, status=status.HTTP_201_CREATED)
 
+    # get_queryset to return only users from the same center
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == CustomUser.ADMIN:
+            return CustomUser.objects.filter(center=user.center)
+        elif user.role == CustomUser.PROFESOR:
+            return CustomUser.objects.filter(center=user.center)
+
+        return CustomUser.objects.none()
+
 
 class UserDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
@@ -111,13 +124,35 @@ class ClassListCreateView(generics.ListCreateAPIView):
         serializer.save(center=user.center)
 
 
+class ParentChildCreateView(generics.CreateAPIView):
+    queryset = ParentChild.objects.all()
+    serializer_class = ParentChildSerializer
+    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+
+
 class ParentClassListView(generics.ListAPIView):
     serializer_class = ClassGrupoSerializer
-    permission_classes = [IsAuthenticated, IsParent]
+    permission_classes = [IsAuthenticated, IsParent | IsProfesor | IsAdmin | IsStudent]
 
     def get_queryset(self):
         user = self.request.user
         if user.role == CustomUser.FATHER:
-            children = ParentChild.objects.filter(parent=user).values_list("child", float=True)
-            return ClassGrupo.objects.filter(student__in=children).distinct()
+            children = ParentChild.objects.filter(parent=user).values_list("child")
+            return ClassGrupo.objects.filter(students__in=children).distinct()
+        elif user.role == CustomUser.STUDENT:
+            return ClassGrupo.objects.filter(students=user).distinct()
+
         raise PermissionDenied("You do not have permission to view this class.")
+
+
+class ParentChildListView(generics.ListAPIView):
+    serializer_class = ParentChildListSerializer
+    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in [CustomUser.ADMIN, CustomUser.PROFESOR]:
+            return ParentChild.objects.filter(
+                parent__center=user.center
+            ).select_related('parent', 'child')
+        raise PermissionDenied("You do not have permission to view this list.")

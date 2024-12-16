@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, ClassGrupo
+from .models import CustomUser, ClassGrupo, ParentChild
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -77,3 +77,27 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
 
     def get_teacher_name(self, obj):
         return obj.teacher.get_full_name() if obj.teacher else None
+
+
+class ParentChildSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ParentChild
+        fields = "__all__"
+
+    def validate(self, data):
+        if data["parent"].role != CustomUser.FATHER:
+            raise serializers.ValidationError("Only fathers can be parents.")
+        if data["child"].role != CustomUser.STUDENT:
+            raise serializers.ValidationError("Only students can be children.")
+        if ParentChild.objects.filter(parent=data["parent"], child=data["child"]).exists():
+            raise serializers.ValidationError("This parent-child relationship already exists.")
+        return data
+
+
+class ParentChildListSerializer(serializers.ModelSerializer):
+    parent_detail = UserSerializer(source="parent", read_only=True)
+    child_detail = UserSerializer(source="child", read_only=True)
+
+    class Meta:
+        model = ParentChild
+        fields = ["id", "parent", "child", "parent_detail", "child_detail"]
