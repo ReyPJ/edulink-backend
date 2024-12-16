@@ -3,6 +3,7 @@ from .views import (
     UserListCreateView,
     UserDetailUpdateDeleteView,
     ClassListCreateView,
+    ParentClassListView
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     ),
     # Clases
     path("classes/", ClassListCreateView.as_view(), name="class-list-create"),
+    path("parent-classes/", ParentClassListView.as_view(), name="parent-class-list"),
 ]

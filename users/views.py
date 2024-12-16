@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import models
-from .models import CustomUser, ClassGrupo
+from .models import CustomUser, ClassGrupo, ParentChild
 from .permissions import IsAdmin, IsParent, IsProfesor, IsStudent
 from .serializers import (
     UserSerializer,
@@ -65,7 +65,7 @@ class UserListCreateView(generics.ListCreateAPIView):
 class UserDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor | IsParent | IsStudent]
 
     def update(self, request, *args, **kwargs):
         if "password" in request.data and request.data["password"]:
@@ -109,3 +109,15 @@ class ClassListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("You do not have permission to create classes.")
 
         serializer.save(center=user.center)
+
+
+class ParentClassListView(generics.ListAPIView):
+    serializer_class = ClassGrupoSerializer
+    permission_classes = [IsAuthenticated, IsParent]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == CustomUser.FATHER:
+            children = ParentChild.objects.filter(parent=user).values_list("child", float=True)
+            return ClassGrupo.objects.filter(student__in=children).distinct()
+        raise PermissionDenied("You do not have permission to view this class.")

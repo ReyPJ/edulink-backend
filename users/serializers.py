@@ -77,4 +77,3 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
 
     def get_teacher_name(self, obj):
         return obj.teacher.get_full_name() if obj.teacher else None
-
