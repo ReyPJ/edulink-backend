@@ -12,5 +12,5 @@ class NoteBookSerializer(serializers.ModelSerializer):
     pages = NoteBookPagesSerializer(many=True, read_only=True)
 
     class Meta:
-        models = NoteBook
+        model = NoteBook
         fields = '__all__'
