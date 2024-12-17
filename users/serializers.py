@@ -72,10 +72,10 @@ class ClassGrupoSerializer(serializers.ModelSerializer):
         model = ClassGrupo
         fields = "__all__"
 
-    def get_students_name(self, obj):
+    def get_students_name(self, obj) -> list[str]:
         return [student.get_full_name() for student in obj.students.all()]
 
-    def get_teacher_name(self, obj):
+    def get_teacher_name(self, obj) -> str:
         return obj.teacher.get_full_name() if obj.teacher else None
 
 

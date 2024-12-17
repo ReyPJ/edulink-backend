@@ -25,8 +25,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "notebook",
     "rest_framework",
     "corsheaders",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -70,6 +72,14 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'EduLink CR API',
+    'DESCRIPTION': 'API Documentation for EduLink CR',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 AUTH_USER_MODEL = "users.CustomUser"
