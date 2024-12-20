@@ -12,7 +12,7 @@ SECRET_KEY = "django-insecure-0e#ycs#tp$!g80owm0ihf&g^3(6(e#1ak*i5(1dc1dit86=y9x
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -42,9 +42,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://web.postman.co",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "https://web.postman.co",
+# ]
+# ALLOW ALL CORS ORIGINS
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ["*"]
 

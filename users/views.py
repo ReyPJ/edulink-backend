@@ -1,5 +1,5 @@
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -53,6 +53,7 @@ class UserListCreateView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsAdmin | IsProfesor]
+    # permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -72,7 +73,7 @@ class UserListCreateView(generics.ListCreateAPIView):
         elif user.role == CustomUser.PROFESOR:
             return CustomUser.objects.filter(center=user.center)
 
-        return CustomUser.objects.none()
+        return CustomUser.objects.all()
 
 
 class UserDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
