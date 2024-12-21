@@ -26,20 +26,15 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        role = validated_data.get("role", CustomUser.STUDENT)
         password = validated_data.pop("password", None)
 
-        if role == CustomUser.STUDENT:
-            user = CustomUser.objects.create(**validated_data)
+        if not password:
+            raise serializers.ValidationError(
+                {"password": "Password is required for non-student roles."}
+            )
 
-        else:
-            if not password:
-                raise serializers.ValidationError(
-                    {"password": "Password is required for non-student roles."}
-                )
-
-            user = CustomUser.objects.create(**validated_data)
-            user.set_password(password)
+        user = CustomUser.objects.create(**validated_data)
+        user.set_password(password)
 
         user.save()
         return user

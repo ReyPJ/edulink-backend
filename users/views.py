@@ -36,11 +36,20 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             )
 
         if password and user.check_password(password):
+            # first get the user id of the user who is logging in so I can give it on the Response
+
+            user_id = user.id
+            user_role = user.role
+            user_center = user.center
+
             refresh = RefreshToken.for_user(user)
             return Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
+                    "userId": user_id,
+                    "role": user_role,
+                    "center": user_center
                 }
             )
 
@@ -155,5 +164,5 @@ class ParentChildListView(generics.ListAPIView):
         if user.role in [CustomUser.ADMIN, CustomUser.PROFESOR]:
             return ParentChild.objects.filter(
                 parent__center=user.center
-            ).select_related('parent', 'child')
+            ).select_related("parent", "child")
         raise PermissionDenied("You do not have permission to view this list.")
