@@ -15,8 +15,7 @@ class CustomUser(AbstractUser):
         (STUDENT, "Student"),
     ]
 
-    role = models.CharField(
-        max_length=25, choices=ROLE_CHOICES, default=STUDENT)
+    role = models.CharField(max_length=25, choices=ROLE_CHOICES, default=STUDENT)
     phone = models.CharField(max_length=12, blank=True, null=True)
     center = models.CharField(max_length=250, default="Test School")
     unique_code = models.CharField(max_length=8, unique=True)
@@ -26,8 +25,18 @@ class CustomUser(AbstractUser):
 
 
 class ParentChild(models.Model):
-    parent = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={"role": CustomUser.FATHER}, related_name="children")
-    child = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={"role": CustomUser.STUDENT}, related_name="parents")
+    parent = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": CustomUser.FATHER},
+        related_name="children",
+    )
+    child = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": CustomUser.STUDENT},
+        related_name="parents",
+    )
 
 
 class ClassGrupo(models.Model):
@@ -43,6 +52,7 @@ class ClassGrupo(models.Model):
         limit_choices_to={"role": CustomUser.STUDENT},
         related_name="clase_student",
     )
+    subject = models.CharField(max_length=100, default="Matematica")
     center = models.CharField(max_length=250)
 
     def __str__(self):

@@ -123,6 +123,11 @@ class ClassListCreateView(generics.ListCreateAPIView):
         elif user.role == CustomUser.STUDENT:
             return ClassGrupo.objects.filter(students=user)
 
+        # Filter by subject on the query
+        subject = self.request.query_params.get("subject")
+        if subject:
+            return ClassGrupo.objects.filter(subject=subject)
+
         return ClassGrupo.objects.none()
 
     def perform_create(self, serializer):
@@ -132,6 +137,30 @@ class ClassListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("You do not have permission to create classes.")
 
         serializer.save(center=user.center)
+
+
+class ClassDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ClassGrupo.objects.all()
+    serializer_class = ClassGrupoSerializer
+    permission_classes = [IsAuthenticated, IsAdmin | IsProfesor | IsParent | IsStudent]
+
+    def update(self, request, *args, **kwargs):
+        if "students" in request.data:
+            students = request.data.pop("students")
+            instance = self.get_object()
+
+            for student in students:
+                instance.students.add(student)
+
+        return super().update(request, *args, **kwargs)
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+
+        if user.role not in [CustomUser.ADMIN, CustomUser.PROFESOR]:
+            raise PermissionDenied("You do not have permission to delete classes.")
+
+        instance.delete()
 
 
 class ParentChildCreateView(generics.CreateAPIView):

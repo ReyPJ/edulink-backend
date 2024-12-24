@@ -3,9 +3,10 @@ from .views import (
     UserListCreateView,
     UserDetailUpdateDeleteView,
     ClassListCreateView,
+    ClassDetailUpdateDeleteView,
     ParentClassListView,
     ParentChildCreateView,
-    ParentChildListView
+    ParentChildListView,
 )
 
 urlpatterns = [
@@ -18,8 +19,17 @@ urlpatterns = [
     ),
     # Clases
     path("classes/", ClassListCreateView.as_view(), name="class-list-create"),
+    path(
+        "classes/<int:pk>/",
+        ClassDetailUpdateDeleteView.as_view(),
+        name="class-detail-update-delete",
+    ),
     # Padres e hijos
     path("parent-child/", ParentChildCreateView.as_view(), name="parent-child-create"),
-    path("parent-child/classes-list/", ParentClassListView.as_view(), name="parent-class-list"),
+    path(
+        "parent-child/classes-list/",
+        ParentClassListView.as_view(),
+        name="parent-class-list",
+    ),
     path("parent-child/list/", ParentChildListView.as_view(), name="parent-child-list"),
 ]
