@@ -13,18 +13,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 SECRET_KEY = os.getenv("DJANGO_SECRET", None)
-DEBUG = False
+DEBUG = os.getenv("DEBUG", False)
 
-ALLOWED_HOSTS = ["*"]
 
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SECURITY
+
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_BROWSER_XSS_FILTER = False
+    USE_X_FORWARDED_HOST = False
+    SECURE_PROXY_SSL_HEADER = None
+
+else:
+    ALLOWED_HOSTS = ["*"]
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -102,17 +116,26 @@ AUTH_USER_MODEL = "users.CustomUser"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",       
-        "NAME": os.getenv("POSTGRESS_DB", None),
-        "USER": os.getenv("POSTGRESS_USER", None),
-        "PASSWORD": os.getenv("POSTGRESS_PASSWORD", None),
-        "HOST": os.getenv("POSTGRESS_HOST", None),
-        "PORT": os.getenv("POSTGRESS_PORT", None),
-        "SSL_MODE": "require",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRESS_DB", None),
+            "USER": os.getenv("POSTGRESS_USER", None),
+            "PASSWORD": os.getenv("POSTGRESS_PASSWORD", None),
+            "HOST": os.getenv("POSTGRESS_HOST", None),
+            "PORT": os.getenv("POSTGRESS_PORT", None),
+            "SSL_MODE": "require",
+        }
+    }
 
 
 # Password validation
