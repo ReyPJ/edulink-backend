@@ -1,2 +1,2 @@
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conff
