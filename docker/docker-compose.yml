@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-api
+    restard: always
+    command: >
+      sh -c "python3 manage.py migrate &&
+             python3 manage.py create_super_user 
+             --unique_code='admin' 
+             --center='centro1' 
+             --username='admin' 
+             --password='123' &&
+             python3 manage.py runserver 0.0.0.0:8000"
+    volumes:
+      -.:/app
+    environment:
+      - DJANGO_SECRET=${DJANGO_SECRET_KEY}
+      - POSTGRESS_USER=${POSTGRESS_USER}
+      - POSTGRESS_PASSWORD=${POSTGRESS_PASSWORD}
+      - POSTGRESS_DB=${POSTGRESS_DB}
+      - POSTGRESS_HOST=${POSTGRESS_HOST}
+      - POSTGRESS_PORT=${POSTGRESS_PORT}
+      - SSLMODE=${SSLMODE}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRESS_USER}
+      - POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}
+      - POSTGRES_DB=${POSTGRESS_DB}
+      - POSTGRES_HOST=${POSTGRESS_HOST}
+      - POSTGRES_PORT=${POSTGRESS_PORT}
+      - SSLMODE=${SSLMODE}
+    ports:
+      - "${POSTGRESS_PORT}:${POSTGRESS_PORT}"
+    networks:
+      - backend
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+    networks:
+      - backend
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    restart: always
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./ngix_data:/var/lib/nginx
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  volumes:
+    postgres_data:
+    static_volume:
+    certs:
+  networks:
+    backend:

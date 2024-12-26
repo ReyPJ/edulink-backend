@@ -17,7 +17,7 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 if CustomUser.objects.filter(center=options["center"], role=CustomUser.ADMIN).exists():
-                    self.stdout.write(self.style.ERROR('User with this email already exists'))
+                    self.stdout.write(self.style.ERROR('This center already has an admin user'))
                     return
 
                 user = CustomUser.objects.create(
